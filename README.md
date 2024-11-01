@@ -1,3 +1,8 @@
+<a href="https://dsc.gg/EchoScriptors">
+    <img src="https://img.shields.io/discord/811542332678996008?color=7289DA&label=Support&logo=discord&style=for-the-badge" alt="Discord">
+</a>
+
+--
 # Counting Discord Bot
 
 A Discord bot for a fun counting game in your server! This bot deletes incorrect numbers, notifies users of mistakes, and ensures each number is sent by a different user. Uses MongoDB to store game progress and includes a `/setup` command to set the counting channel.
