@@ -19,8 +19,8 @@ async function initializeDatabase() {
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
   await initializeDatabase();
+  client.user.setStatus(process.env.BOT_STATUS);
 
-  // Register the /setup command
   const setupCommand = new SlashCommandBuilder()
     .setName('setup')
     .setDescription('Setup the counting channel')
@@ -40,7 +40,6 @@ client.on('interactionCreate', async interaction => {
   if (commandName === 'setup') {
     const channel = options.getChannel('channel');
 
-    // Save the channel to MongoDB and reset counting state
     await db.collection('settings').updateOne(
       { guildId: interaction.guildId },
       { $set: { countChannel: channel.id, lastNumber: 0, lastUser: null } },
@@ -54,31 +53,30 @@ client.on('interactionCreate', async interaction => {
 client.on('messageCreate', async message => {
   if (message.author.bot) return;
 
-  // Retrieve the counting channel and last count info from the database
   const settings = await db.collection('settings').findOne({ guildId: message.guild.id });
   if (!settings || message.channel.id !== settings.countChannel) return;
 
   const number = parseInt(message.content);
-  if (isNaN(number)) return; // Ignore non-number messages
+  if (isNaN(number)) {
+    await message.delete();
+    await message.author.send(`Only numbers are allowed in ${message.channel}. Please enter the correct number.`);
+    return;
+  }
 
   const lastNumber = settings.lastNumber || 0;
   const lastUser = settings.lastUser || null;
 
-  // Check if the number is correct and sent by a new user
   if (number === lastNumber + 1) {
     if (message.author.id === lastUser) {
-      // If the same user sends two numbers in a row, delete the message and notify them
       await message.delete();
       await message.author.send(`Wait for someone else to send the next number before you can continue counting!`);
     } else {
-      // Update lastNumber and lastUser in the database
       await db.collection('settings').updateOne(
         { guildId: message.guild.id },
         { $set: { lastNumber: number, lastUser: message.author.id } }
       );
     }
   } else {
-    // Incorrect number, delete the message and notify the user
     await message.delete();
     await message.author.send(`Oops! You entered the wrong number in ${message.channel}. Please try again with the correct number.`);
   }

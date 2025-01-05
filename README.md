@@ -41,6 +41,7 @@ A Discord bot for a fun counting game in your server! This bot deletes incorrect
    ```env
    DISCORD_TOKEN=your_discord_token
    MONGO_URI=your_mongodb_uri
+   BOT_STATUS=idle
    ```
 
 4. Start the bot:
