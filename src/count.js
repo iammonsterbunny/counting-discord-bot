@@ -1,37 +1,3 @@
-// index.js
-const { Client, GatewayIntentBits } = require('discord.js');
-const { createCountCommand, handleCountCommand, handleCount } = require('./counting');
-const { MongoClient } = require('mongodb');
-require('dotenv').config();
-
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
-const dbClient = new MongoClient(process.env.MONGODB_URI);
-
-client.once('ready', async () => {
-    console.log(`Logged in as ${client.user.tag}`);
-    await dbClient.connect();
-});
-
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
-
-    if (interaction.commandName === 'setcount') {
-        await handleCountCommand(interaction, dbClient.db('counting'));
-    }
-});
-
-client.on('messageCreate', async message => {
-    if (message.author.bot) return;
-
-    await handleCount(message, dbClient.db('counting'));
-});
-
-client.login(process.env.DISCORD_TOKEN);
-```
-
-```
-javascript
-// counting.js
 const { SlashCommandBuilder, ChannelType } = require('discord.js');
 
 function createCountCommand() {
@@ -115,7 +81,7 @@ async function handleCount(message, db) {
                     await message.react('💯');
                 } else if (number % 50 === 0) {
                     await message.react('⭐');
-                } else if (number % 25 === 0) {
+                } else if (number % 25 === 0) { // Fixed condition
                     await message.react('✨');
                 } else {
                     await message.react('✅');
