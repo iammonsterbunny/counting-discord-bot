@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Bot Statistics</h1>
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Servers</h3>
+                <p><%= stats.servers %></p>
+            </div>
+            <div class="stat-card">
+                <h3>Users</h3>
+                <p><%= stats.users %></p>
+            </div>
+            <div class="stat-card">
+                <h3>Uptime</h3>
+                <p><%= stats.uptime %>s</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Partials, Collection, SlashCommandBuilder } =
 const { MongoClient } = require('mongodb');
 const { createWelcomeCommand, handleWelcomeCommand, handleNewMember } = require('./src/welcome');
 const { createLevelCommands, handleRankCommand, handleLeaderboard, handleXpGain, handleLevelSetup } = require('./src/level');
+const { startWebServer } = require('./web/server');
 
 const client = new Client({
   intents: [
@@ -27,6 +28,9 @@ client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
   await initializeDatabase();
   client.user.setStatus(process.env.BOT_STATUS);
+
+  // Start web server
+  startWebServer(client, db);
 
   const setupCommand = new SlashCommandBuilder()
     .setName('setup')
