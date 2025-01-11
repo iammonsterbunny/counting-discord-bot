@@ -3,7 +3,8 @@ const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const { MongoClient } = require('mongodb');
 const { createWelcomeCommand, handleWelcomeCommand, handleNewMember } = require('./src/welcome');
 const { createLevelCommands, handleRankCommand, handleLeaderboard, handleXpGain, handleLevelSetup } = require('./src/level');
-const { createCountCommand, handleCountCommand, handleCount } = require('./src/count'); // Fixed import path
+const { createCountCommand, handleCountCommand, handleCount } = require('./src/count');
+const { startWebServer } = require('./web/server'); // Fixed import path
 
 const client = new Client({
   intents: [
@@ -29,18 +30,25 @@ client.once('ready', async () => {
   await initializeDatabase();
   client.user.setStatus(process.env.BOT_STATUS);
 
-  // Start web server
-  startWebServer(client, db);
+  try {
+    // Start web server with error handling
+    if (process.env.ENABLE_WEBSITE !== 'false') {
+      await startWebServer(client, db);
+    }
 
-  const countCommand = createCountCommand();
-  const welcomeCommand = createWelcomeCommand();
+    // Register commands
+    const countCommand = createCountCommand();
+    const welcomeCommand = createWelcomeCommand();
 
-  await client.application.commands.create(countCommand);
-  await client.application.commands.create(welcomeCommand);
+    await client.application.commands.create(countCommand);
+    await client.application.commands.create(welcomeCommand);
 
-  const levelCommands = createLevelCommands();
-  for (const command of levelCommands) {
-    await client.application.commands.create(command);
+    const levelCommands = createLevelCommands();
+    for (const command of levelCommands) {
+      await client.application.commands.create(command);
+    }
+  } catch (error) {
+    console.error('Error during initialization:', error);
   }
 });
 
