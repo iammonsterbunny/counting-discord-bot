@@ -1,9 +1,16 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials, Collection, SlashCommandBuilder } = require('discord.js');
 const { MongoClient } = require('mongodb');
+const { createWelcomeCommand, handleWelcomeCommand, handleNewMember } = require('./src/welcome');
+const { createLevelCommands, handleRankCommand, handleLeaderboard, handleXpGain, handleLevelSetup } = require('./src/level');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers
+  ],
   partials: [Partials.Message, Partials.Channel, Partials.User],
 });
 
@@ -30,7 +37,15 @@ client.once('ready', async () => {
         .setRequired(true)
     );
 
+  const welcomeCommand = createWelcomeCommand();
+
   await client.application.commands.create(setupCommand);
+  await client.application.commands.create(welcomeCommand);
+
+  const levelCommands = createLevelCommands();
+  for (const command of levelCommands) {
+    await client.application.commands.create(command);
+  }
 });
 
 client.on('interactionCreate', async interaction => {
@@ -47,11 +62,32 @@ client.on('interactionCreate', async interaction => {
     );
 
     await interaction.reply(`Counting channel set to ${channel}. Start counting from 1!`);
+  } else if (commandName === 'setwelcome') {
+    await handleWelcomeCommand(interaction, db);
+  } else {
+    switch(commandName) {
+      case 'rank':
+        await handleRankCommand(interaction, db);
+        break;
+      case 'leaderboard':
+        await handleLeaderboard(interaction, db);
+        break;
+      case 'levelsetup':
+        await handleLevelSetup(interaction, db);
+        break;
+    }
   }
+});
+
+client.on('guildMemberAdd', async member => {
+  await handleNewMember(member, db);
 });
 
 client.on('messageCreate', async message => {
   if (message.author.bot) return;
+
+  // Handle XP gain
+  await handleXpGain(message, db);
 
   const settings = await db.collection('settings').findOne({ guildId: message.guild.id });
   if (!settings || message.channel.id !== settings.countChannel) return;

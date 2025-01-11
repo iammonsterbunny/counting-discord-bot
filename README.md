@@ -3,17 +3,31 @@
 </a>
 
 --
-# Counting Discord Bot
+# Advanced Discord Bot
 
-A Discord bot for a fun counting game in your server! This bot deletes incorrect numbers, notifies users of mistakes, and ensures each number is sent by a different user. Uses MongoDB to store game progress and includes a `/setup` command to set the counting channel.
+A feature-rich Discord bot combining counting game, welcome messages, and leveling system! Uses MongoDB for data persistence and includes easy setup commands for all features.
 
 ## Features
 
-- Allows users to count in sequence.
-- Deletes messages with incorrect numbers and notifies the user.
-- Ensures each user can only contribute one number at a time.
-- Stores progress in MongoDB for easy data persistence.
-- Easy setup with a `/setup` command to define the counting channel.
+### Counting System
+- Allows users to count in sequence
+- Deletes incorrect numbers and notifies users
+- Prevents consecutive counting by the same user
+- Stores progress in MongoDB
+
+### Welcome System
+- Customizable welcome messages for new members
+- Support for welcome images
+- Uses placeholders for dynamic mentions
+- Configurable welcome channel
+
+### Leveling System
+- Experience (XP) gain from chat activity
+- Level-up notifications with custom messages
+- Beautiful rank cards showing progress
+- Server-wide leaderboard
+- Anti-spam cooldown system
+- Custom level-up channel
 
 ## Prerequisites
 
@@ -24,20 +38,17 @@ A Discord bot for a fun counting game in your server! This bot deletes incorrect
 ## Installation
 
 1. Clone the repository:
-
    ```bash
    git clone https://github.com/iammonsterbunny/counting-discord-bot.git
    cd counting-discord-bot
    ```
 
 2. Install dependencies:
-
    ```bash
    npm install
    ```
 
-3. Create a `.env` file and add your Discord bot token and MongoDB URI:
-
+3. Configure your `.env` file:
    ```env
    DISCORD_TOKEN=your_discord_token
    MONGO_URI=your_mongodb_uri
@@ -45,38 +56,42 @@ A Discord bot for a fun counting game in your server! This bot deletes incorrect
    ```
 
 4. Start the bot:
-
    ```bash
    node index.js
    ```
 
-## Usage
-
-1. **Set up the counting channel**:
-   Use the `/setup` command in your Discord server and specify the channel where the counting game should take place.
-
-2. **Start Counting**:
-   Begin counting from `1` in the specified channel. Each user must send the next consecutive number. If a user sends the wrong number, the bot deletes the message and notifies them.
-
-3. **Rules**:
-   - Each user can only send one number at a time.
-   - If a user sends two consecutive numbers, the bot will delete the second message and remind them to wait for another user.
-
 ## Commands
 
-- `/setup [channel]` - Set the counting channel.
+### Setup Commands
+- `/setup [channel]` - Set the counting channel
+- `/setwelcome [channel] [message] [imagelink?]` - Configure welcome messages
+- `/levelsetup [channel] [message]` - Set up level-up notifications
 
-## Example `.env` file
+### User Commands
+- `/rank [user?]` - Check your or someone else's rank
+- `/leaderboard` - View server XP leaderboard
 
-```env
-DISCORD_TOKEN=your_discord_token_here
-MONGO_URI=your_mongodb_connection_string
-```
+## Placeholders
+- Welcome Messages: `{@user}` - Mentions the new member
+- Level-up Messages: `{@user}` and `{@level}` - Mentions user and shows new level
 
 ## Dependencies
 
-- [discord.js](https://discord.js.org/) - Library for interacting with the Discord API.
-- [mongodb](https://www.mongodb.com/) - MongoDB Node.js driver for data persistence.
+- [discord.js](https://discord.js.org/) - Discord API library
+- [mongodb](https://www.mongodb.com/) - Database driver
+- [canvas](https://www.npmjs.com/package/canvas) - Rank card generation
+
+## Examples
+
+### Welcome Message Setup
+```
+/setwelcome channel:#welcome message:"Welcome {@user} to our server!" imagelink:https://example.com/welcome.png
+```
+
+### Level-up Notification Setup
+```
+/levelsetup channel:#level-ups message:"🎉 {@user} has reached level {@level}!"
+```
 
 ## License
 
@@ -84,4 +99,4 @@ This project is licensed under the MIT License.
 
 ---
 
-Enjoy counting with your community!
+Made with ❤️ by Monster Bunny
