@@ -38,7 +38,10 @@ async function handleWelcomeCommand(interaction, db) {
         { upsert: true }
     );
 
-    await interaction.reply(`Welcome message setup complete in ${channel}`);
+    await interaction.reply({
+        content: `Welcome message setup complete in ${channel}`,
+        flags: 64 // Equivalent to ephemeral: true
+    });
 }
 
 async function handleNewMember(member, db) {

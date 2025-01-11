@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, ChannelType } = require('discord.js');
 
 function createCountCommand() {
+    console.log('Creating count command...');
     return new SlashCommandBuilder()
         .setName('setcount')
         .setDescription('Setup the counting channel')
@@ -13,14 +14,20 @@ function createCountCommand() {
 }
 
 async function handleCountCommand(interaction, db) {
+    console.log('Handling count command...');
+    if (!interaction || !db) {
+        console.error('Missing interaction or db object');
+        return;
+    }
+
     try {
         const channel = interaction.options.getChannel('channel');
+        console.log('Selected channel:', channel?.name);
         
-        // Validate channel type
-        if (!channel.isTextBased()) {
+        if (!channel || !channel.isTextBased()) {
             return await interaction.reply({
-                content: 'Please select a text channel!',
-                ephemeral: true
+                content: 'Please select a valid text channel!',
+                flags: 64
             });
         }
 
@@ -36,16 +43,17 @@ async function handleCountCommand(interaction, db) {
             { upsert: true }
         );
 
+        console.log('Count channel set successfully');
         await interaction.reply({
-            content: `Successfully set ${channel} as the counting channel!`,
-            ephemeral: true
+            content: `Successfully set ${channel} as the counting channel! Start counting from 1.`,
+            flags: 64
         });
     } catch (error) {
         console.error('Error in handleCountCommand:', error);
         await interaction.reply({
             content: 'An error occurred while setting up the counting channel.',
-            ephemeral: true
-        });
+            flags: 64
+        }).catch(console.error);
     }
 }
 

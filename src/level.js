@@ -58,30 +58,47 @@ async function createRankCard(user, userData) {
     const avatar = await Canvas.loadImage(user.displayAvatarURL({ extension: 'png' }));
     ctx.drawImage(avatar, 25, 25, 200, 200);
 
-    // Add username
-    ctx.font = '40px sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(user.username, 250, 70);
+    // Function to add text shadow
+    const drawTextWithShadow = (text, x, y, fontSize) => {
+        ctx.font = `${fontSize}px "Arial Black", sans-serif`;
+        // Add shadow
+        ctx.fillStyle = '#000000';
+        ctx.fillText(text, x + 2, y + 2);
+        // Add main text
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(text, x, y);
+    };
 
-    // Add level and XP
+    // Add username with shadow
+    drawTextWithShadow(user.username, 250, 70, 40);
+
+    // Add level and XP info with shadow
     const level = calculateLevel(userData.xp);
     const currentLevelXp = calculateXpForLevel(level);
     const nextLevelXp = calculateXpForLevel(level + 1);
     const xpProgress = userData.xp - currentLevelXp;
     const xpNeeded = nextLevelXp - currentLevelXp;
 
-    ctx.font = '30px sans-serif';
-    ctx.fillText(`Level: ${level}`, 250, 120);
-    ctx.fillText(`XP: ${userData.xp}`, 250, 160);
+    drawTextWithShadow(`Level: ${level}`, 250, 120, 30);
+    drawTextWithShadow(`XP: ${userData.xp}/${nextLevelXp}`, 250, 160, 30);
 
-    // Draw XP bar
+    // Draw XP bar with improved visibility
     const barWidth = 400;
     const barHeight = 30;
     const progress = (xpProgress / xpNeeded) * barWidth;
 
-    ctx.fillStyle = '#4f545c';
+    // Draw bar background with border
+    ctx.fillStyle = '#1a1a1a';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
     ctx.fillRect(250, 180, barWidth, barHeight);
-    ctx.fillStyle = '#7289da';
+    ctx.strokeRect(250, 180, barWidth, barHeight);
+
+    // Draw progress bar with gradient
+    const gradient = ctx.createLinearGradient(250, 180, 250 + progress, 180 + barHeight);
+    gradient.addColorStop(0, '#7289da');
+    gradient.addColorStop(1, '#5b6eae');
+    ctx.fillStyle = gradient;
     ctx.fillRect(250, 180, progress, barHeight);
 
     return new AttachmentBuilder(canvas.toBuffer(), { name: 'rank.png' });
@@ -165,6 +182,11 @@ async function handleXpGain(message, db) {
     );
 
     const newUserData = result.value;
+    if (!newUserData) {
+        console.error('Failed to retrieve updated user data.');
+        return;
+    }
+
     const newLevel = calculateLevel(newUserData.xp);
 
     xpCooldowns.set(message.author.id, true);
