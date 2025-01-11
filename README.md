@@ -2,10 +2,9 @@
     <img src="https://img.shields.io/discord/811542332678996008?color=7289DA&label=Support&logo=discord&style=for-the-badge" alt="Discord">
 </a>
 
---
 # Advanced Discord Bot
 
-A feature-rich Discord bot combining counting game, welcome messages, and leveling system! Uses MongoDB for data persistence and includes easy setup commands for all features.
+A feature-rich Discord bot combining counting game with reactions, welcome messages, and leveling system! Uses MongoDB for data persistence and includes easy setup commands for all features.
 
 ## Features
 
@@ -13,11 +12,17 @@ A feature-rich Discord bot combining counting game, welcome messages, and leveli
 - Allows users to count in sequence
 - Deletes incorrect numbers and notifies users
 - Prevents consecutive counting by the same user
+- Special reactions for milestone numbers:
+  - ✅ Regular correct numbers
+  - ✨ Multiples of 25
+  - ⭐ Multiples of 50
+  - 🎉💯 Multiples of 100
 - Stores progress in MongoDB
 
 ### Welcome System
 - Customizable welcome messages for new members
-- Support for welcome images
+- Support for welcome images with URL validation
+- Automatic fallback to text-only if image fails
 - Uses placeholders for dynamic mentions
 - Configurable welcome channel
 
@@ -25,7 +30,7 @@ A feature-rich Discord bot combining counting game, welcome messages, and leveli
 - Experience (XP) gain from chat activity
 - Level-up notifications with custom messages
 - Beautiful rank cards showing progress
-- Server-wide leaderboard
+- Server-wide leaderboard with error handling
 - Anti-spam cooldown system
 - Custom level-up channel
 

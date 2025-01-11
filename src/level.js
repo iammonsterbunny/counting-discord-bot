@@ -139,6 +139,16 @@ async function handleXpGain(message, db) {
     if (xpCooldowns.has(message.author.id)) return;
 
     const xpGain = Math.floor(Math.random() * 10) + BASE_XP;
+    
+    // First get the current user data
+    const currentData = await db.collection('users').findOne({
+        guildId: message.guild.id,
+        userId: message.author.id
+    }) || { xp: 0 };
+
+    const oldLevel = calculateLevel(currentData.xp);
+
+    // Update the user's XP
     const result = await db.collection('users').findOneAndUpdate(
         {
             guildId: message.guild.id,
@@ -148,14 +158,17 @@ async function handleXpGain(message, db) {
             $inc: { xp: xpGain },
             $setOnInsert: { username: message.author.username }
         },
-        { upsert: true, returnDocument: 'after' }
+        { 
+            upsert: true, 
+            returnDocument: 'after'
+        }
     );
+
+    const newUserData = result.value;
+    const newLevel = calculateLevel(newUserData.xp);
 
     xpCooldowns.set(message.author.id, true);
     setTimeout(() => xpCooldowns.delete(message.author.id), XP_COOLDOWN);
-
-    const oldLevel = calculateLevel(result.value.xp - xpGain);
-    const newLevel = calculateLevel(result.value.xp);
 
     if (newLevel > oldLevel) {
         const settings = await db.collection('settings').findOne({ guildId: message.guild.id });
