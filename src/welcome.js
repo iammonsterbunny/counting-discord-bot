@@ -50,13 +50,42 @@ async function handleNewMember(member, db) {
 
     const welcomeMessage = settings.welcomeMessage.replace('{@user}', member.toString());
     
-    if (settings.welcomeImage) {
-        await channel.send({
-            content: welcomeMessage,
-            files: [settings.welcomeImage]
-        });
-    } else {
-        await channel.send(welcomeMessage);
+    try {
+        if (settings.welcomeImage) {
+            // Validate image URL
+            const isValidUrl = url => {
+                try {
+                    new URL(url);
+                    return url.match(/\.(jpg|jpeg|png|gif|webp)$/i) != null;
+                } catch {
+                    return false;
+                }
+            };
+
+            if (isValidUrl(settings.welcomeImage)) {
+                await channel.send({
+                    content: welcomeMessage,
+                    files: [{
+                        attachment: settings.welcomeImage,
+                        name: 'welcome.jpg'
+                    }]
+                });
+            } else {
+                // Fallback to text-only if image URL is invalid
+                await channel.send(welcomeMessage);
+                console.error(`Invalid image URL for guild ${member.guild.id}: ${settings.welcomeImage}`);
+            }
+        } else {
+            await channel.send(welcomeMessage);
+        }
+    } catch (error) {
+        console.error(`Error sending welcome message in guild ${member.guild.id}:`, error);
+        // Attempt to send text-only message as fallback
+        try {
+            await channel.send(welcomeMessage);
+        } catch (e) {
+            console.error('Failed to send fallback welcome message:', e);
+        }
     }
 }
 

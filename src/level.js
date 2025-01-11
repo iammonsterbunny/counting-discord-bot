@@ -105,16 +105,32 @@ async function handleLeaderboard(interaction, db) {
         .limit(10)
         .toArray();
 
-    const embed = new EmbedBuilder()
-        .setTitle('🏆 Server Leaderboard')
-        .setColor('#7289da')
-        .setDescription(
-            (await Promise.all(topUsers.map(async (user, index) => {
+    if (!topUsers || topUsers.length === 0) {
+        const embed = new EmbedBuilder()
+            .setTitle('🏆 Server Leaderboard')
+            .setColor('#7289da')
+            .setDescription('No users found in the leaderboard yet!');
+        
+        await interaction.reply({ embeds: [embed] });
+        return;
+    }
+
+    const leaderboardText = await Promise.all(
+        topUsers.map(async (user, index) => {
+            try {
                 const member = await interaction.guild.members.fetch(user.userId);
                 const level = calculateLevel(user.xp);
                 return `${index + 1}. ${member.user.username} - Level ${level} (${user.xp} XP)`;
-            }))).join('\n')
-        );
+            } catch (error) {
+                return `${index + 1}. Unknown User - Level ${calculateLevel(user.xp)} (${user.xp} XP)`;
+            }
+        })
+    );
+
+    const embed = new EmbedBuilder()
+        .setTitle('🏆 Server Leaderboard')
+        .setColor('#7289da')
+        .setDescription(leaderboardText.join('\n') || 'No users found in the leaderboard yet!');
 
     await interaction.reply({ embeds: [embed] });
 }
