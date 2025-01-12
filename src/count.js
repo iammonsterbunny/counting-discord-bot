@@ -58,49 +58,70 @@ async function handleCountCommand(interaction, db) {
 }
 
 async function handleCount(message, db) {
-    const settings = await db.collection('settings').findOne({ guildId: message.guild.id });
-    if (!settings || message.channel.id !== settings.countChannel) return;
+    try {
+        const settings = await db.collection('settings').findOne({ guildId: message.guild.id });
+        if (!settings || message.channel.id !== settings.countChannel) return;
 
-    const number = parseInt(message.content);
-    if (isNaN(number)) {
-        await message.delete();
-        await message.author.send(`Only numbers are allowed in ${message.channel}. Please enter the correct number.`);
-        return;
-    }
-
-    const lastNumber = settings.lastNumber || 0;
-    const lastUser = settings.lastUser || null;
-
-    if (number === lastNumber + 1) {
-        if (message.author.id === lastUser) {
-            await message.delete();
-            await message.author.send(`Wait for someone else to send the next number before you can continue counting!`);
-        } else {
-            await db.collection('settings').updateOne(
-                { guildId: message.guild.id },
-                { $set: { lastNumber: number, lastUser: message.author.id } }
-            );
-            
-            // Add reaction for correct number
+        const number = parseInt(message.content);
+        if (isNaN(number)) {
             try {
-                // Use different emojis based on number milestones
-                if (number % 100 === 0) {
-                    await message.react('🎉');
-                    await message.react('💯');
-                } else if (number % 50 === 0) {
-                    await message.react('⭐');
-                } else if (number % 25 === 0) { // Fixed condition
-                    await message.react('✨');
-                } else {
-                    await message.react('✅');
+                await message.delete();
+                await message.author.send(`Only numbers are allowed in ${message.channel}. Please enter the correct number.`)
+                    .catch(err => console.log('Could not DM user:', err.message));
+            } catch (deleteError) {
+                console.log('Could not delete message:', deleteError.message);
+            }
+            return;
+        }
+
+        const lastNumber = settings.lastNumber || 0;
+        const lastUser = settings.lastUser || null;
+
+        if (number === lastNumber + 1) {
+            if (message.author.id === lastUser) {
+                try {
+                    await message.delete();
+                    await message.author.send(`Wait for someone else to send the next number before you can continue counting!`)
+                        .catch(err => console.log('Could not DM user:', err.message));
+                } catch (deleteError) {
+                    console.log('Could not delete message:', deleteError.message);
                 }
-            } catch (error) {
-                console.error('Error adding reaction:', error);
+            } else {
+                // Update the database first
+                await db.collection('settings').updateOne(
+                    { guildId: message.guild.id },
+                    { $set: { lastNumber: number, lastUser: message.author.id } }
+                );
+
+                // Then add reactions
+                try {
+                    if (number % 100 === 0) {
+                        await Promise.all([
+                            message.react('🎉'),
+                            message.react('💯')
+                        ]).catch(() => {});
+                    } else if (number % 50 === 0) {
+                        await message.react('⭐').catch(() => {});
+                    } else if (number % 25 === 0) {
+                        await message.react('✨').catch(() => {});
+                    } else {
+                        await message.react('✅').catch(() => {});
+                    }
+                } catch (reactError) {
+                    console.log('Could not add reaction:', reactError.message);
+                }
+            }
+        } else {
+            try {
+                await message.delete();
+                await message.author.send(`Oops! You entered the wrong number in ${message.channel}. The next number should be ${lastNumber + 1}.`)
+                    .catch(err => console.log('Could not DM user:', err.message));
+            } catch (deleteError) {
+                console.log('Could not delete message:', deleteError.message);
             }
         }
-    } else {
-        await message.delete();
-        await message.author.send(`Oops! You entered the wrong number in ${message.channel}. Please try again with the correct number.`);
+    } catch (error) {
+        console.error('Error in handleCount:', error);
     }
 }
 

@@ -100,14 +100,25 @@ async function createRankCard(user, userData) {
 
 
 async function handleRankCommand(interaction, db) {
-    const target = interaction.options.getUser('user') || interaction.user;
-    const userData = await db.collection('users').findOne({
-        guildId: interaction.guildId,
-        userId: target.id
-    }) || { xp: 0 };
+    try {
+        await interaction.deferReply();
+        const target = interaction.options.getUser('user') || interaction.user;
+        const userData = await db.collection('users').findOne({
+            guildId: interaction.guildId,
+            userId: target.id
+        }) || { xp: 0 };
 
-    const rankCard = await createRankCard(target, userData);
-    await interaction.reply({ files: [rankCard] });
+        const rankCard = await createRankCard(target, userData);
+        await interaction.editReply({ files: [rankCard] });
+    } catch (error) {
+        console.error('Error in handleRankCommand:', error);
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ 
+                content: 'An error occurred while generating the rank card.',
+                ephemeral: true
+            }).catch(console.error);
+        }
+    }
 }
 
 async function handleLeaderboard(interaction, db) {
