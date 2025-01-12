@@ -51,28 +51,26 @@ async function createRankCard(user, userData) {
     const ctx = canvas.getContext('2d');
 
     // Add background
-    ctx.fillStyle = '#2f3136';
+    ctx.fillStyle = '#2f3136'; // Discord-like dark background
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Add user avatar
-    const avatar = await Canvas.loadImage(user.displayAvatarURL({ extension: 'png' }));
+    const avatar = await Canvas.loadImage(user.displayAvatarURL({ extension: 'png', size: 128 }));
     ctx.drawImage(avatar, 25, 25, 200, 200);
 
-    // Function to add text shadow
+    // Function to add text with improved visibility
     const drawTextWithShadow = (text, x, y, fontSize) => {
-        ctx.font = `${fontSize}px "Arial Black", sans-serif`;
-        // Add shadow
-        ctx.fillStyle = '#000000';
-        ctx.fillText(text, x + 2, y + 2);
-        // Add main text
-        ctx.fillStyle = '#ffffff';
+        ctx.font = `${fontSize}px sans-serif`;
+        ctx.fillStyle = '#000000'; // Shadow color
+        ctx.fillText(text, x + 2, y + 2); // Offset for shadow
+        ctx.fillStyle = '#ffffff'; // Main text color
         ctx.fillText(text, x, y);
     };
 
-    // Add username with shadow
-    drawTextWithShadow(user.username, 250, 70, 40);
+    // Add username
+    drawTextWithShadow(user.username || 'Unknown User', 250, 70, 36);
 
-    // Add level and XP info with shadow
+    // Calculate levels and XP
     const level = calculateLevel(userData.xp);
     const currentLevelXp = calculateXpForLevel(level);
     const nextLevelXp = calculateXpForLevel(level + 1);
@@ -82,27 +80,24 @@ async function createRankCard(user, userData) {
     drawTextWithShadow(`Level: ${level}`, 250, 120, 30);
     drawTextWithShadow(`XP: ${userData.xp}/${nextLevelXp}`, 250, 160, 30);
 
-    // Draw XP bar with improved visibility
+    // Draw XP bar
     const barWidth = 400;
     const barHeight = 30;
     const progress = (xpProgress / xpNeeded) * barWidth;
 
-    // Draw bar background with border
-    ctx.fillStyle = '#1a1a1a';
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
+    ctx.fillStyle = '#1a1a1a'; // Bar background
     ctx.fillRect(250, 180, barWidth, barHeight);
-    ctx.strokeRect(250, 180, barWidth, barHeight);
 
-    // Draw progress bar with gradient
-    const gradient = ctx.createLinearGradient(250, 180, 250 + progress, 180 + barHeight);
-    gradient.addColorStop(0, '#7289da');
-    gradient.addColorStop(1, '#5b6eae');
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = '#7289da'; // Bar progress color
     ctx.fillRect(250, 180, progress, barHeight);
+
+    ctx.strokeStyle = '#ffffff'; // Bar border
+    ctx.lineWidth = 2;
+    ctx.strokeRect(250, 180, barWidth, barHeight);
 
     return new AttachmentBuilder(canvas.toBuffer(), { name: 'rank.png' });
 }
+
 
 async function handleRankCommand(interaction, db) {
     const target = interaction.options.getUser('user') || interaction.user;
