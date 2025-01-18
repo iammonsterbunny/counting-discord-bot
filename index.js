@@ -5,6 +5,13 @@ const { createWelcomeCommand, handleWelcomeCommand, handleNewMember } = require(
 const { createLevelCommands, handleRankCommand, handleLeaderboard, handleXpGain, handleLevelSetup } = require('./src/level');
 const { createCountCommand, handleCountCommand, handleCount } = require('./src/count');
 const { startWebServer } = require('./web/server'); // Fixed import path
+const { 
+    createAntiSpamCommand, 
+    createAntiBadWordsCommand,
+    handleAntiSpamCommand, 
+    handleAntiBadWordsCommand,
+    checkMessage 
+} = require('./src/antispam');
 
 const client = new Client({
   intents: [
@@ -39,9 +46,13 @@ client.once('ready', async () => {
     // Register commands
     const countCommand = createCountCommand();
     const welcomeCommand = createWelcomeCommand();
+    const antiSpamCommand = createAntiSpamCommand();
+    const antiBadWordsCommand = createAntiBadWordsCommand();
 
     await client.application.commands.create(countCommand);
     await client.application.commands.create(welcomeCommand);
+    await client.application.commands.create(antiSpamCommand);
+    await client.application.commands.create(antiBadWordsCommand);
 
     const levelCommands = createLevelCommands();
     for (const command of levelCommands) {
@@ -73,6 +84,12 @@ client.on('interactionCreate', async interaction => {
       case 'levelsetup':
         await handleLevelSetup(interaction, db);
         break;
+      case 'setantispam':
+        await handleAntiSpamCommand(interaction, db);
+        break;
+      case 'setantibadwords':
+        await handleAntiBadWordsCommand(interaction, db);
+        break;
     }
   } catch (error) {
     console.error('Error handling command:', error);
@@ -91,7 +108,7 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
 
   try {
-    // Handle XP gain and counting
+    await checkMessage(message, db);
     await handleXpGain(message, db);
     await handleCount(message, db);
   } catch (error) {

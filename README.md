@@ -4,7 +4,7 @@
 
 # Advanced Discord Bot
 
-A feature-rich Discord bot combining counting game with reactions, welcome messages, and leveling system! Uses MongoDB for data persistence and includes easy setup commands for all features.
+A comprehensive Discord bot with counting game, leveling system, welcome messages, anti-spam, and bad words filter! Uses MongoDB for data persistence.
 
 ## Features
 
@@ -33,6 +33,26 @@ A feature-rich Discord bot combining counting game with reactions, welcome messa
 - Server-wide leaderboard with error handling
 - Anti-spam cooldown system
 - Custom level-up channel
+
+### Anti-Spam System
+- Detects rapid message repetition
+- Identifies emoji spam patterns
+- Configurable timeout duration (default: 2 minutes)
+- Immune roles support
+- Automatic message cleanup
+- Detailed logging system
+- User notifications
+- Customizable per server
+
+### Bad Words Filter
+- Comprehensive bad words database
+- Custom words support
+- Immune roles configuration
+- Message deletion
+- Detailed incident logging
+- User notifications
+- Server-specific settings
+- Automatic updates
 
 ## Prerequisites
 
