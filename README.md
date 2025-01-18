@@ -123,5 +123,10 @@ A comprehensive Discord bot with counting game, leveling system, welcome message
 This project is licensed under the MIT License.
 
 ---
+### Repo views
+<div align="center">
+  <img src="https://profile-counter.glitch.me/Discord-bot/count.svg?" />
+</div>
 
+---
 Made with ❤️ by Monster Bunny
