@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Spam detection settings
-const SPAM_THRESHOLD = 3; // Number of repeated messages to trigger
-const SPAM_TIME_WINDOW = 5000; // Time window in milliseconds
+const SPAM_THRESHOLD = 4; // Changed from 3 to 4 messages
+const SPAM_TIME_WINDOW = 5000; // 5 seconds window
 const userMessages = new Map(); // Store recent messages per user
 
 // Load bad words from file
@@ -216,9 +216,12 @@ async function checkSpam(message, db) {
 }
 
 function checkSpamPatterns(messages) {
-    if (messages.length < SPAM_THRESHOLD) return false;
+    // Check total number of messages in time window
+    if (messages.length >= SPAM_THRESHOLD) {
+        return true;
+    }
 
-    // Check for repeated messages
+    // Check for repeated messages (keeping existing logic as fallback)
     const lastMessage = messages[messages.length - 1].content;
     const repeatedCount = messages.filter(msg => msg.content === lastMessage).length;
 
@@ -233,10 +236,16 @@ async function handleSpamDetected(message, settings, db) {
     try {
         // Delete spam messages
         const userMessages = await message.channel.messages.fetch({ 
-            limit: 10,
+            limit: SPAM_THRESHOLD + 2, // Increased limit to catch more spam messages
             author: message.author.id 
         });
         await message.channel.bulkDelete(userMessages);
+
+        // Add warning message in chat
+        await message.channel.send({
+            content: `⚠️ ${message.author}, please avoid sending too many messages too quickly.`,
+            flags: 64
+        }).then(msg => setTimeout(() => msg.delete().catch(() => {}), 5000)); // Auto-delete after 5s
 
         // Timeout user
         await message.member.timeout(settings.spamTimeout * 60 * 1000, 'Spam detected');
