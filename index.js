@@ -12,7 +12,6 @@ const {
     handleAntiBadWordsCommand,
     checkMessage 
 } = require('./src/antispam');
-const { createMcChatCommand, handleMcChatCommand, handleDiscordMessage } = require('./src/minecraft');
 
 const client = new Client({
   intents: [
@@ -49,13 +48,11 @@ client.once('ready', async () => {
     const welcomeCommand = createWelcomeCommand();
     const antiSpamCommand = createAntiSpamCommand();
     const antiBadWordsCommand = createAntiBadWordsCommand();
-    const mcChatCommand = createMcChatCommand();
 
     await client.application.commands.create(countCommand);
     await client.application.commands.create(welcomeCommand);
     await client.application.commands.create(antiSpamCommand);
     await client.application.commands.create(antiBadWordsCommand);
-    await client.application.commands.create(mcChatCommand);
 
     const levelCommands = createLevelCommands();
     for (const command of levelCommands) {
@@ -93,15 +90,12 @@ client.on('interactionCreate', async interaction => {
       case 'setantibadwords':
         await handleAntiBadWordsCommand(interaction, db);
         break;
-      case 'setmcchat':
-        await handleMcChatCommand(interaction, db);
-        break;
     }
   } catch (error) {
     console.error('Error handling command:', error);
     await interaction.reply({
       content: 'An error occurred while processing the command.',
-      ephemeral: true
+      flags: 64
     }).catch(console.error);
   }
 });
@@ -117,7 +111,6 @@ client.on('messageCreate', async message => {
     await checkMessage(message, db);
     await handleXpGain(message, db);
     await handleCount(message, db);
-    await handleDiscordMessage(message, db); // Add this line
   } catch (error) {
     console.error('Error handling message:', error);
   }

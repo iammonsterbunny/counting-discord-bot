@@ -54,14 +54,6 @@ A feature-rich Discord bot combining counting game, welcome messages, leveling s
 - Anti-spam cooldown system
 - Custom level-up channel
 
-### Minecraft Chat Integration (New!)
-- Bidirectional chat between Discord and Minecraft
-- Support for both Java and Bedrock editions
-- Custom chat prefixes for Discord messages
-- Easy setup with single command
-- Per-server configuration
-- Channel-specific integration
-
 ## Prerequisites
 
 - Node.js
@@ -99,7 +91,6 @@ A feature-rich Discord bot combining counting game, welcome messages, leveling s
 - `/setup [channel]` - Set the counting channel
 - `/setwelcome [channel] [message] [imagelink?]` - Configure welcome messages
 - `/levelsetup [channel] [message]` - Set up level-up notifications
-- `/setmcchat [channel] [ip] [port] [edition]` - Configure Minecraft chat integration
 
 ### User Commands
 - `/rank [user?]` - Check your or someone else's rank
@@ -125,11 +116,6 @@ A feature-rich Discord bot combining counting game, welcome messages, leveling s
 ### Level-up Notification Setup
 ```
 /levelsetup channel:#level-ups message:"🎉 {@user} has reached level {@level}!"
-```
-
-### Minecraft Chat Setup
-```
-/setmcchat channel:#minecraft-chat ip:play.example.com port:25565 edition:java
 ```
 
 ## License
