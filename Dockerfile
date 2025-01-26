@@ -1,6 +1,6 @@
 FROM node:18-slim
 
-# Install required dependencies including cmake
+# Install required system dependencies
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
@@ -12,21 +12,22 @@ RUN apt-get update && \
     libgif-dev \
     librsvg2-dev \
     fonts-liberation \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /usr/src/app
 
-# Install dependencies
+# Copy package files and clear npm cache
 COPY package*.json ./
+RUN npm cache clean --force
 
-# Install with specific platform target and build from source
-RUN npm install --target_platform=linux --build-from-source
+# Install dependencies without target_platform
+RUN npm install --build-from-source
 
-# Copy source
+# Copy application source code
 COPY . .
 
-# Expose port
+# Expose port (optional, based on your app's configuration)
 EXPOSE 8000
 
 # Start the application
