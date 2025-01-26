@@ -115,7 +115,7 @@ async function handleRankCommand(interaction, db) {
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({ 
                 content: 'An error occurred while generating the rank card.',
-                ephemeral: true
+                flags: 64
             }).catch(console.error);
         }
     }

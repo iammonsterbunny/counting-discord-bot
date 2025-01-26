@@ -53,13 +53,13 @@ async function handleMcChatCommand(interaction, db) {
 
         await interaction.reply({
             content: `Minecraft chat integration configured!\nServer: ${ip}:${port}\nEdition: ${edition}\nChat Channel: ${channel}`,
-            ephemeral: true
+            flags: 64 // Equivalent to ephemeral: true
         });
     } catch (error) {
         console.error('Error in handleMcChatCommand:', error);
         await interaction.reply({
             content: 'Failed to configure Minecraft chat integration.',
-            ephemeral: true
+            flags: 64 // Equivalent to ephemeral: true
         });
     }
 }
