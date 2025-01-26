@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const mc = require('minecraft-protocol');
-const bedrock = require('@jsprismarine/bedrock-protocol');
+const bedrock = require('bedrock-protocol');  // Updated import
 
 let javaClients = new Map();
 let bedrockClients = new Map();
@@ -77,7 +77,8 @@ async function connectToServer(settings, client, channel) {
             host: settings.mcServerIP,
             port: settings.mcServerPort,
             username: 'Discord_Bot',
-            version: '1.19.70' // You can adjust the version as needed
+            version: '1.19.70', // You can adjust the version as needed
+            offline: true
         });
 
         bedrockClient.on('text', (packet) => {

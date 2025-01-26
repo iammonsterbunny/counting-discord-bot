@@ -1,33 +1,28 @@
 FROM node:18-slim
 
-# Install required system dependencies
+# Install required dependencies for canvas
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
-    python3 \
-    cmake \
     libcairo2-dev \
     libpango1.0-dev \
     libjpeg-dev \
     libgif-dev \
     librsvg2-dev \
     fonts-liberation \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /usr/src/app
 
-# Copy package files and clear npm cache
+# Install dependencies
 COPY package*.json ./
-RUN npm cache clean --force
+RUN npm install
 
-# Install dependencies without target_platform
-RUN npm install --build-from-source
-
-# Copy application source code
+# Copy source
 COPY . .
 
-# Expose port (optional, based on your app's configuration)
+# Expose port
 EXPOSE 8000
 
 # Start the application
