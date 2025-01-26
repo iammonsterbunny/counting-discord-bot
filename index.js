@@ -101,7 +101,7 @@ client.on('interactionCreate', async interaction => {
     console.error('Error handling command:', error);
     await interaction.reply({
       content: 'An error occurred while processing the command.',
-      flags: 64 // Equivalent to ephemeral: true
+      ephemeral: true
     }).catch(console.error);
   }
 });

@@ -1,4 +1,9 @@
 const { SlashCommandBuilder } = require('discord.js');
+const mc = require('minecraft-protocol');
+const bedrock = require('bedrock-protocol');
+
+let javaClients = new Map();
+let bedrockClients = new Map();
 
 function createMcChatCommand() {
     return new SlashCommandBuilder()
@@ -30,6 +35,71 @@ function createMcChatCommand() {
         );
 }
 
+async function connectToServer(settings, client, channel) {
+    const guildId = settings.guildId;
+    
+    if (settings.mcEdition === 'java') {
+        if (javaClients.has(guildId)) {
+            javaClients.get(guildId).end();
+        }
+
+        const mcClient = mc.createClient({
+            host: settings.mcServerIP,
+            port: settings.mcServerPort,
+            username: 'Discord_Bot',
+            auth: 'offline'
+        });
+
+        mcClient.on('chat', (packet) => {
+            const message = packet.message;
+            if (message.includes('Discord Chat')) return; // Prevent feedback loop
+            
+            try {
+                channel.send(`Minecraft: ${message}`);
+            } catch (error) {
+                console.error('Error sending message to Discord:', error);
+            }
+        });
+
+        mcClient.on('error', (error) => {
+            console.error('Minecraft client error:', error);
+            channel.send('Lost connection to Minecraft server. Reconnecting...');
+            setTimeout(() => connectToServer(settings, client, channel), 5000);
+        });
+
+        javaClients.set(guildId, mcClient);
+    } else {
+        if (bedrockClients.has(guildId)) {
+            bedrockClients.get(guildId).close();
+        }
+
+        const bedrockClient = bedrock.createClient({
+            host: settings.mcServerIP,
+            port: settings.mcServerPort,
+            username: 'Discord_Bot',
+            offline: true
+        });
+
+        bedrockClient.on('text', (packet) => {
+            if (packet.message.includes('Discord Chat')) return;
+            
+            try {
+                channel.send(`Minecraft: ${packet.message}`);
+            } catch (error) {
+                console.error('Error sending message to Discord:', error);
+            }
+        });
+
+        bedrockClient.on('error', (error) => {
+            console.error('Bedrock client error:', error);
+            channel.send('Lost connection to Minecraft server. Reconnecting...');
+            setTimeout(() => connectToServer(settings, client, channel), 5000);
+        });
+
+        bedrockClients.set(guildId, bedrockClient);
+    }
+}
+
 async function handleMcChatCommand(interaction, db) {
     try {
         const channel = interaction.options.getChannel('channel');
@@ -37,29 +107,32 @@ async function handleMcChatCommand(interaction, db) {
         const port = interaction.options.getInteger('port');
         const edition = interaction.options.getString('edition');
 
+        const settings = {
+            guildId: interaction.guildId,
+            mcChatEnabled: true,
+            mcChatChannel: channel.id,
+            mcServerIP: ip,
+            mcServerPort: port,
+            mcEdition: edition
+        };
+
         await db.collection('settings').updateOne(
             { guildId: interaction.guildId },
-            {
-                $set: {
-                    mcChatEnabled: true,
-                    mcChatChannel: channel.id,
-                    mcServerIP: ip,
-                    mcServerPort: port,
-                    mcEdition: edition
-                }
-            },
+            { $set: settings },
             { upsert: true }
         );
 
+        await connectToServer(settings, interaction.client, channel);
+
         await interaction.reply({
             content: `Minecraft chat integration configured!\nServer: ${ip}:${port}\nEdition: ${edition}\nChat Channel: ${channel}`,
-            flags: 64 // Equivalent to ephemeral: true
+            ephemeral: true
         });
     } catch (error) {
         console.error('Error in handleMcChatCommand:', error);
         await interaction.reply({
             content: 'Failed to configure Minecraft chat integration.',
-            flags: 64 // Equivalent to ephemeral: true
+            ephemeral: true
         });
     }
 }
@@ -69,19 +142,24 @@ async function handleDiscordMessage(message, db) {
         const settings = await db.collection('settings').findOne({ guildId: message.guild.id });
         if (!settings?.mcChatEnabled || message.channel.id !== settings.mcChatChannel) return;
 
-        // Format the message for Minecraft
         const formattedMessage = `Discord Chat [${message.author.username}]: ${message.content}`;
         
-        // Here you would integrate with your Minecraft server
-        // This is a placeholder - you'll need to implement the actual server communication
-        console.log('Sending to Minecraft:', formattedMessage);
-
-        // Example pseudocode for sending to Minecraft server:
-        // if (settings.mcEdition === 'java') {
-        //     sendToJavaServer(settings.mcServerIP, settings.mcServerPort, formattedMessage);
-        // } else {
-        //     sendToBedrockServer(settings.mcServerIP, settings.mcServerPort, formattedMessage);
-        // }
+        if (settings.mcEdition === 'java') {
+            const client = javaClients.get(settings.guildId);
+            if (client?.write) {
+                client.write('chat', { message: formattedMessage });
+            }
+        } else {
+            const client = bedrockClients.get(settings.guildId);
+            if (client?.queue) {
+                client.queue('text', {
+                    type: 'chat',
+                    needsTranslation: false,
+                    message: formattedMessage,
+                    source: 'Discord_Bot'
+                });
+            }
+        }
     } catch (error) {
         console.error('Error sending message to Minecraft:', error);
     }
